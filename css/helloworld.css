@@ -1,0 +1,14 @@
+.btn {
+    font-family: 'Indie Flower', sans-serif;
+    color: #ffffff;
+    font-size: 10pt;
+    background: #3498db;
+    padding: 5px 10px 5px 10px;
+    border: solid #000000 2px;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background: #3cb0fd;
+    text-decoration: none;
+}

@@ -5,12 +5,12 @@
  */
 
 function helloworld_menu() {
-  $items = array();
 
+  $items = array();
   $items['helloworld'] = array(
     'title' => 'Hello World',
     'access callback' => TRUE,
-    'page callback' => 'hello_page',
+    'page callback' => 'helloworld_page',
     'type' => MENU_NORMAL_ITEM,
     'menu' => 'navigation',
   );
@@ -18,7 +18,13 @@ function helloworld_menu() {
   return $items;
 }
 
-function hello_page() {
-  return t('Hello World. Welcome to Drupal!');
+function helloworld_page() {
+    $p = drupal_get_path('module', 'helloworld');
+
+    drupal_add_css('http://fonts.googleapis.com/css?family=Indie+Flower', array('group' => CSS_THEME, 'type' => 'external'));
+    drupal_add_css($p . '/css/helloworld.css');
+    drupal_add_js($p . '/js/helloworld.js');
+
+    return '<p id="hello"></p>';
 }
 
