@@ -1,0 +1,24 @@
+<?php
+
+/*
+ * Based on: https://drupalize.me/blog/201502/write-hello-world-test-drupal-7-simpletest
+ */
+
+function helloworld_menu() {
+  $items = array();
+
+  $items['helloworld'] = array(
+    'title' => 'Hello World',
+    'access callback' => TRUE,
+    'page callback' => 'hello_page',
+    'type' => MENU_NORMAL_ITEM,
+    'menu' => 'navigation',
+  );
+
+  return $items;
+}
+
+function hello_page() {
+  return t('Hello World. Welcome to Drupal!');
+}
+
