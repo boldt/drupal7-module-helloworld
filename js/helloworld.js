@@ -2,6 +2,7 @@
     // We need a Drupal behavior, because DOM is not ready when this file is loaded
     Drupal.behaviors.hello = {
         attach: function (context, settings) {
+/*
             var hello = $('#hello');
             var colors = ['red', 'green', 'blue', 'yellow', 'orange'];
             if(hello.length > 0) {
@@ -17,6 +18,7 @@
                 });
             }
         }
+*/
     };
 
 })(jQuery);

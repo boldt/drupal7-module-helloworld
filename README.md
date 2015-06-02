@@ -12,4 +12,4 @@ git clone git@github.com:boldt/drupal7-module-helloworld.git ./sites/all/modules
 ```
 
 Open *Modules* in Drupal 7 and activate the "Hello World" module. 
-Afterwards, you find a *Hello World* entry in the navigation-
+Afterwards, you find a *Hello World* entry in the navigation.

@@ -1,0 +1,38 @@
+<?php
+
+/*
+ * Implements hook_schema().
+ *
+ * @see: https://www.drupal.org/node/876250
+ * @see: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_schema/7
+ *
+ */
+
+function helloworld_schema() {
+
+    $schema ['helloworld'] = array(
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial', /* serial and int are the same internal column types, but serial is also set to be auto-increment, whereas int is not. */
+                'unsigned' => TRUE,
+                'not null' => TRUE
+            ),
+            'title' => array(
+                'type' => 'varchar',
+                'length' => 250,
+                'not null' => TRUE,
+                'default' => '',
+            ),
+            'text' => array(
+                'type' => 'varchar',
+                'length' => 250,
+                'not null' => TRUE,
+                'default' => '',
+            )
+        ),
+        'primary key' => array('id')
+    );
+
+    return $schema;
+}
+

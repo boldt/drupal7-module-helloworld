@@ -12,3 +12,9 @@
     background: #3cb0fd;
     text-decoration: none;
 }
+
+.helloworld h2 {
+    color: red;
+    font-weight: bold;
+    font-family: 'Indie Flower', sans-serif;
+}

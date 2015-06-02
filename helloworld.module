@@ -1,30 +1,62 @@
 <?php
 
-/*
- * Based on: https://drupalize.me/blog/201502/write-hello-world-test-drupal-7-simpletest
+/**
+ * Implements hook_menu().
+ *
+ * @see: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_menu/7
+ * @see: https://drupalize.me/blog/201502/write-hello-world-test-drupal-7-simpletest
+ *
  */
 
 function helloworld_menu() {
 
-  $items = array();
-  $items['helloworld'] = array(
-    'title' => 'Hello World',
-    'access callback' => TRUE,
-    'page callback' => 'helloworld_page',
-    'type' => MENU_NORMAL_ITEM,
-    'menu' => 'navigation',
-  );
+    $items = array();
+    $items['helloworld'] = array(
+        'title' => 'Hello World',
+        'access callback' => TRUE,
+        'page callback' => 'helloworld_page',
+        'type' => MENU_NORMAL_ITEM,
+        'menu' => 'navigation',
+    );
 
-  return $items;
+    return $items;
 }
 
 function helloworld_page() {
+
+    $out = '';
+    //$out .= '<p id="hello"></p>';
+    $out .= '<div class="helloworld">';
+
     $p = drupal_get_path('module', 'helloworld');
 
     drupal_add_css('http://fonts.googleapis.com/css?family=Indie+Flower', array('group' => CSS_THEME, 'type' => 'external'));
     drupal_add_css($p . '/css/helloworld.css');
     drupal_add_js($p . '/js/helloworld.js');
 
-    return '<p id="hello"></p>';
-}
+    // Insert, if form is send
+    if(isset($_POST['title'])) {
+        $nid = db_insert('helloworld') // Table name no longer needs {}
+            ->fields(array(
+                'title' => $_POST['title'],
+                'text' => $_POST['text']
+            ))
+            ->execute();
+    }
 
+    // Create a simple form
+    $out .= 
+        '<form method="POST">' .
+            'Title: <input type="text" name="title"><br>' .
+            'Text: <input type="text" name="text"><br>' .
+            '<button type="submit" name="submit">Send</button>' .
+        '</form>';
+
+    // Get all data from the database
+    $result = db_query("SELECT * FROM {helloworld}");
+    foreach ($result as $record) {
+        $out .= '<h2>#' .  $record->id . ' - ' . $record->title . '</h2><p>' . $record->text . '</p>';
+    }
+
+    return $out . '</div>';
+}
