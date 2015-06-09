@@ -132,18 +132,21 @@ function helloworld_page() {
     // Get all data from the database
     // @see: https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_query/7 (function db_query)
     // @see: https://www.drupal.org/writing-secure-code
-    $result = db_query("SELECT * FROM {helloworld}");
-    foreach ($result as $record) {
+    $result = db_select("helloworld", "h")
+        ->fields('h')
+        ->execute();
 
-        // @see: https://api.drupal.org/api/drupal/includes!bootstrap.inc/function/t/7 (function t)
-        // @see: https://www.drupal.org/node/1844980 (Why use t() function?)
-        // @see: https://www.drupal.org/node/322774 (Dynamic or static links and HTML in translatable strings)
+    while($record = $result->fetchObject()) {
         $out .= t('<h2>#!id - !title</h2><p>Date: !date</p><p>!text</p>', array(
             '!id' => $record->id,
             '!title' => $record->title,
             '!date' => date("Y-m-d H:i:s", $record->timestamp),
             '!text' => $record->text,
         ));
+
+        // @see: https://api.drupal.org/api/drupal/includes!bootstrap.inc/function/t/7 (function t)
+        // @see: https://www.drupal.org/node/1844980 (Why use t() function?)
+        // @see: https://www.drupal.org/node/322774 (Dynamic or static links and HTML in translatable strings)
 
         if(user_access("hello world delete")) {
             $path = arg(0) . "/" . $record->id . "/delete/";
