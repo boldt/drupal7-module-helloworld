@@ -15,7 +15,9 @@ function helloworld_schema() {
     $schema ['helloworld'] = array(
         'fields' => array(
             'id' => array(
-                'type' => 'serial', /* serial and int are the same internal column types, but serial is also set to be auto-increment, whereas int is not. */
+                /* serial and int are the same internal column types, 
+                 * but serial is also set to be auto-increment, whereas int is not. */
+                'type' => 'serial', 
                 'unsigned' => TRUE,
                 'not null' => TRUE
             ),
@@ -37,3 +39,4 @@ function helloworld_schema() {
 
     return $schema;
 }
+

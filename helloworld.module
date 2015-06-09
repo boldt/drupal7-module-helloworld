@@ -18,6 +18,11 @@ function helloworld_menu() {
         'type' => MENU_NORMAL_ITEM,
         'menu' => 'navigation',
     );
+    $items['helloworld/%/delete'] = array(
+        'access callback' => TRUE,
+        'page callback' => 'helloworld_delete',
+        'page arguments' => array(1)
+    );
 
     return $items;
 }
@@ -38,12 +43,33 @@ function helloworld_permission() {
 
     return array(
         'hello world add' => array(
-            'title' => t('Add content to hello world module')
+            'title' => t('Add an item to hello world module'),
         ),
         'hello world delete' => array(
-            'title' => t('Delete content from the hello world module')
+            'title' => t('Delete an item from the hello world module')
         )
     );
+}
+
+function helloworld_delete($id) {
+
+    if(user_access("hello world delete")) {
+        // @see: https://www.drupal.org/node/180589
+        $return_value = db_delete('helloworld')
+            ->condition('id', $id)
+            ->execute();
+        if($return_value) {
+            if(!empty($_SERVER['HTTP_REFERER'])) {
+                header("Location: " . $_SERVER['HTTP_REFERER']);
+            } else {
+                return t("Deleted ID $id");
+            }
+        } else {
+            return t("ID $id does not exists: " . $return_value);
+        }
+    }
+    
+    return "No permissions to delete this element.";
 }
 
 function helloworld_page() {
@@ -113,7 +139,7 @@ function helloworld_page() {
         ));
 
         if(user_access("hello world delete")) {
-            $path = "helloworld" . "/delete/" . $record->id;
+            $path = arg(0) . "/" . $record->id . "/delete/";
             $out .= "[" . l("X", $path) . "]";
         }
 
