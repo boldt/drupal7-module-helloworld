@@ -3,7 +3,7 @@
 /**
  * Implements hook_menu().
  *
- * @see: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_menu/7
+ * @see: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_menu/7 (function hook_menu)
  * @see: https://drupalize.me/blog/201502/write-hello-world-test-drupal-7-simpletest
  *
  */
@@ -22,7 +22,42 @@ function helloworld_menu() {
     return $items;
 }
 
+function helloworld_debug($msg){
+    echo "<script>console.log('" . $msg . "')</script>";
+}
+
+/*
+ * @see: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_permission/7
+ * @see: https://www.drupal.org/node/1803614
+ * @see: https://www.drupal.org/node/120614
+ * @see: http://websmiths.co/blog/very-quick-introduction-drupals-hookpermission-and-hookperm
+ */
+function helloworld_permission() {
+
+    helloworld_debug("helloworld_permission");
+
+    return array(
+        'hello world add' => array(
+            'title' => t('Add content to hello world module')
+        ),
+        'hello world delete' => array(
+            'title' => t('Delete content from the hello world module')
+        )
+    );
+}
+
 function helloworld_page() {
+
+    helloworld_debug("helloworld_page");
+
+    // Define some default permissions
+    // @see: https://api.drupal.org/api/drupal/modules!user!user.module/function/user_role_load_by_name/7
+    // @see: https://api.drupal.org/api/drupal/modules%21user%21user.module/function/user_role_grant_permissions/7
+    $role1 = user_role_load_by_name("authenticated user");
+    user_role_grant_permissions($role1->rid, array('hello world add'));
+
+    $role2 = user_role_load_by_name("administrator");
+    user_role_grant_permissions($role2->rid, array('hello world delete'));
 
     $out = '';
     //$out .= '<p id="hello"></p>';
@@ -34,28 +69,54 @@ function helloworld_page() {
     drupal_add_css($p . '/css/helloworld.css');
     drupal_add_js($p . '/js/helloworld.js');
 
-    // Insert, if form is send
-    if(isset($_POST['title'])) {
-        $nid = db_insert('helloworld') // Table name no longer needs {}
-            ->fields(array(
-                'title' => $_POST['title'],
-                'text' => $_POST['text']
-            ))
-            ->execute();
+    // Create a simple form
+    // This function has been added in 7.36:
+    // @see: https://api.drupal.org/api/drupal/modules!user!user.module/function/user_has_role/7
+
+    if(user_access("hello world add")) {
+
+        // Insert, if form is send
+        if(isset($_POST['title'])) {
+
+            // @see: https://www.drupal.org/node/310079 (Insert queries)
+            // @see: https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_insert/7 (function db_insert)
+            // @see: https://www.drupal.org/node/310072 (Static queries)
+            $nid = db_insert('helloworld') // Table name no longer needs {}
+                ->fields(array(
+                    'title' => $_POST['title'],
+                    'text' => $_POST['text']
+                ))
+                ->execute();
+        }
+
+        $out .= 
+            '<form method="POST">' .
+                t('Title') . ': <input type="text" name="title"><br>' .
+                t('Text') . ': <input type="text" name="text"><br>' .
+                '<button type="submit" name="submit">Send</button>' .
+            '</form>';
     }
 
-    // Create a simple form
-    $out .= 
-        '<form method="POST">' .
-            'Title: <input type="text" name="title"><br>' .
-            'Text: <input type="text" name="text"><br>' .
-            '<button type="submit" name="submit">Send</button>' .
-        '</form>';
-
     // Get all data from the database
+    // @see: https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_query/7 (function db_query)
+    // @see: https://www.drupal.org/writing-secure-code
     $result = db_query("SELECT * FROM {helloworld}");
     foreach ($result as $record) {
-        $out .= '<h2>#' .  $record->id . ' - ' . $record->title . '</h2><p>' . $record->text . '</p>';
+
+        // @see: https://api.drupal.org/api/drupal/includes!bootstrap.inc/function/t/7 (function t)
+        // @see: https://www.drupal.org/node/1844980 (Why use t() function?)
+        // @see: https://www.drupal.org/node/322774 (Dynamic or static links and HTML in translatable strings)
+        $out .= t('<h2>#!id - !title</h2><p>!text</p>', array(
+            '!id' => $record->id,
+            '!title' => $record->title,
+            '!text' => $record->text
+        ));
+
+        if(user_access("hello world delete")) {
+            $path = "helloworld" . "/delete/" . $record->id;
+            $out .= "[" . l("X", $path) . "]";
+        }
+
     }
 
     return $out . '</div>';

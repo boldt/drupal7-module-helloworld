@@ -3,8 +3,10 @@
 /*
  * Implements hook_schema().
  *
- * @see: https://www.drupal.org/node/876250
- * @see: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_schema/7
+ * @see: https://www.drupal.org/node/876250 (Writing .install files (Drupal 7.x))
+ * @see: https://www.drupal.org/node/146843 (Schema API)
+ * @see: https://www.drupal.org/node/159605 (Data types)
+ * @see: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_schema/7 (function hook_schema)
  *
  */
 
@@ -35,4 +37,3 @@ function helloworld_schema() {
 
     return $schema;
 }
-

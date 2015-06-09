@@ -17,8 +17,8 @@
                     i = (i + 1) % colors.length;
                 });
             }
-        }
 */
+        }
     };
 
 })(jQuery);
