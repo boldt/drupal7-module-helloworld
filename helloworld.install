@@ -32,7 +32,12 @@ function helloworld_schema() {
                 'length' => 250,
                 'not null' => TRUE,
                 'default' => '',
-            )
+            ),
+            'timestamp' => array(
+                'type' => 'int',
+                'length' => 20,
+                'not null' => FALSE,
+            ),
         ),
         'primary key' => array('id')
     );
@@ -40,3 +45,43 @@ function helloworld_schema() {
     return $schema;
 }
 
+//function helloworld_install() {
+    // Set an initial value for the schema version so we can run updates after install.
+    // http://www.deliciouscreative.com/blog/run-drupal-updates-directly-after-enabling-deployment-module
+    // drupal_set_installed_schema_version('helloworld', 7000);
+
+    // Run all update hooks
+    // http://dcycleproject.org/blog/43/run-all-update-hooks-install-hook
+//    for ($i = 7001; $i < 8000; $i++) {
+//        $candidate = 'helloworld_update_' . $i;
+//        if (function_exists($candidate)) {
+//            $candidate();
+//        }
+//    }
+//}
+
+// Updates:
+// @see https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_update_N/7
+
+/**
+ * Add an additional time column to the hello world table
+ */
+function helloworld_update_7001() {
+    // @see: @see: https://www.drupal.org/node/150215
+    $spec = array(
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => FALSE,
+    ); 
+    db_add_field( 'helloworld', 'timestamp', $spec);
+
+    $time = time();
+
+    db_update('helloworld')
+        ->fields(array(
+            'timestamp' => $time
+        ))
+        ->execute();
+}
+
+?>

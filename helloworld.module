@@ -28,7 +28,9 @@ function helloworld_menu() {
 }
 
 function helloworld_debug($msg){
-    echo "<script>console.log('" . $msg . "')</script>";
+    if(false) {
+        echo "<script>console.log('" . $msg . "')</script>";
+    }
 }
 
 /*
@@ -74,6 +76,9 @@ function helloworld_delete($id) {
 
 function helloworld_page() {
 
+//    print_r();
+
+
     helloworld_debug("helloworld_page");
 
     // Define some default permissions
@@ -110,7 +115,8 @@ function helloworld_page() {
             $nid = db_insert('helloworld') // Table name no longer needs {}
                 ->fields(array(
                     'title' => $_POST['title'],
-                    'text' => $_POST['text']
+                    'text' => $_POST['text'],
+                    'timestamp' => time()
                 ))
                 ->execute();
         }
@@ -132,10 +138,11 @@ function helloworld_page() {
         // @see: https://api.drupal.org/api/drupal/includes!bootstrap.inc/function/t/7 (function t)
         // @see: https://www.drupal.org/node/1844980 (Why use t() function?)
         // @see: https://www.drupal.org/node/322774 (Dynamic or static links and HTML in translatable strings)
-        $out .= t('<h2>#!id - !title</h2><p>!text</p>', array(
+        $out .= t('<h2>#!id - !title</h2><p>Date: !date</p><p>!text</p>', array(
             '!id' => $record->id,
             '!title' => $record->title,
-            '!text' => $record->text
+            '!date' => date("Y-m-d H:i:s", $record->timestamp),
+            '!text' => $record->text,
         ));
 
         if(user_access("hello world delete")) {
