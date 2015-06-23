@@ -1,4 +1,7 @@
 (function ($) {
+
+    var p = "drupal/?q=";
+
     // We need a Drupal behavior, because DOM is not ready when this file is loaded
     Drupal.behaviors.hello = {
         attach: function (context, settings) {
@@ -11,7 +14,7 @@
                     console.log("DELETE " + that.data("id"));
 
                     $.ajax({
-                        url: "drupal/?q=helloworld/rest/" + that.data("id"),
+                        url: p + "helloworld/rest/" + that.data("id"),
                         type : "DELETE",
                         success: function(result) {
                             var e = $("#helloworld-context-" + that.data("id"));
@@ -20,6 +23,29 @@
                     });
                 });
             });
+
+            var helloworldCreate = $(".helloworld-create");
+            helloworldCreate.click(function(){
+
+                var e = {
+                    title : $("#helloworld-title").val(),
+                    text : $("#helloworld-text").val()
+                };
+
+                $.ajax({
+                    url: p + "helloworld/rest",
+                    type : "POST",
+                    data: e,
+                    dataType: 'json',
+                    success: function(result) {
+                        console.log("Success: " + result.id);
+                        console.log(result);
+                        location.reload(); // FIXME
+                    }
+                });
+
+            });
+
         }
     };
 

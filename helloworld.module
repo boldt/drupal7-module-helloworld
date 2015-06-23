@@ -73,9 +73,6 @@ function helloworld_permission() {
 function helloworld_rest_id($id) {
 
     //drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
-
-    $parameters = drupal_get_query_parameters();
-
     $method = $_SERVER['REQUEST_METHOD'];
 
     if($method == "GET") {
@@ -102,26 +99,44 @@ function helloworld_rest_id($id) {
 
 function helloworld_rest($link) {
 
-    global $user;
+    $method = $_SERVER['REQUEST_METHOD'];
 
-    $arr = array(
-        'upper' => strtoupper($link),
-        'lower' => strtolower($link)
-    );
+    // php://input gives you everything after the headers in raw form
+    // $raw_post = file_get_contents('php://input');
+    // echo $raw_post;
 
-    if(user_is_logged_in()) {
-        $arr['username'] = t($user->name);
+    if(user_access("hello world add")) {
+        if($method == "POST") {
+            if($_POST['title'] && $_POST['text']) {
+                // @see: https://www.drupal.org/node/310079 (Insert queries)
+                // @see: https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_insert/7 (function db_insert)
+                // @see: https://www.drupal.org/node/310072 (Static queries)
+                $nid = db_insert('helloworld') // Table name no longer needs {}
+                    ->fields(array(
+                        'title' => $_POST['title'],
+                        'text' => $_POST['text'],
+                        'timestamp' => time()
+                    ))
+                    ->execute();
+
+                drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
+
+                $arr = array(
+                    'id' => $nid,
+                );
+                echo json_encode($arr);
+            }
+        }
     }
-
-    echo json_encode($arr);
 }
-
-
 
 function helloworld_page() {
 
-//    print_r();
+    //####################//
+    //### HEADER START ###//
+    //####################//
 
+    // This should be moved to a more fitting place
 
     helloworld_debug("helloworld_page");
 
@@ -144,33 +159,20 @@ function helloworld_page() {
     drupal_add_css($p . '/css/helloworld.css');
     drupal_add_js($p . '/js/helloworld.js');
 
+    //####################//
+    //### HEADER END   ###//
+    //####################//
+
+
     // Create a simple form
     // This function has been added in 7.36:
     // @see: https://api.drupal.org/api/drupal/modules!user!user.module/function/user_has_role/7
 
     if(user_access("hello world add")) {
-
-        // Insert, if form is send
-        if(isset($_POST['title'])) {
-
-            // @see: https://www.drupal.org/node/310079 (Insert queries)
-            // @see: https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_insert/7 (function db_insert)
-            // @see: https://www.drupal.org/node/310072 (Static queries)
-            $nid = db_insert('helloworld') // Table name no longer needs {}
-                ->fields(array(
-                    'title' => $_POST['title'],
-                    'text' => $_POST['text'],
-                    'timestamp' => time()
-                ))
-                ->execute();
-        }
-
         $out .= 
-            '<form method="POST">' .
-                t('Title') . ': <input type="text" name="title"><br>' .
-                t('Text') . ': <input type="text" name="text"><br>' .
-                '<button type="submit" name="submit">Send</button>' .
-            '</form>';
+                t('Title') . ': <input type="text" id="helloworld-title" name="title"><br>' .
+                t('Text') .  ': <input type="text" id="helloworld-text"  name="text"><br>' .
+                '<button class="helloworld-create" type="submit" name="submit">Send</button>';
     }
 
     // Get all data from the database
@@ -178,6 +180,7 @@ function helloworld_page() {
     // @see: https://www.drupal.org/writing-secure-code
     $result = db_select("helloworld", "h")
         ->fields('h')
+        ->orderBy('id', 'DESC')//ORDER BY created
         ->execute();
 
     while($record = $result->fetchObject()) {
@@ -202,7 +205,6 @@ function helloworld_page() {
         }
 
         $out .= '</div>';
-
     }
 
     return $out . '</div>';
