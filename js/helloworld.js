@@ -14,7 +14,7 @@
                     console.log("DELETE " + that.data("id"));
 
                     $.ajax({
-                        url: p + "helloworld/rest/" + that.data("id"),
+                        url: p + "rest/helloworld/" + that.data("id"),
                         type : "DELETE",
                         success: function(result) {
                             var e = $("#helloworld-context-" + that.data("id"));
@@ -33,7 +33,7 @@
                 };
 
                 $.ajax({
-                    url: p + "helloworld/rest",
+                    url: p + "rest/helloworld",
                     type : "POST",
                     data: e,
                     dataType: 'json',

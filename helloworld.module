@@ -24,14 +24,22 @@ function helloworld_menu() {
         'menu' => 'navigation',
     );
 
-    $items['helloworld/rest'] = array(
+    $items['helloworld/%'] = array(
+        'title' => 'Hello World',
+        'access callback' => TRUE,
+        'page callback' => 'helloworld_page_id',
+        'page arguments' => array(1),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['rest/helloworld'] = array(
       'access callback' => TRUE,
       'page callback' => 'helloworld_rest',
       'page arguments' => array(1),
       'type' => MENU_CALLBACK,
     );
 
-    $items['helloworld/rest/%'] = array(
+    $items['rest/helloworld/%'] = array(
       'access callback' => TRUE,
       'page callback' => 'helloworld_rest_id',
       'page arguments' => array(2),
@@ -68,6 +76,11 @@ function helloworld_permission() {
     );
 }
 
+/*
+ **************************************************************************
+ * RESTFUL INTERFACES
+ **************************************************************************
+ */
 
 // TODO: Set correct header
 function helloworld_rest_id($id) {
@@ -130,15 +143,61 @@ function helloworld_rest($link) {
     }
 }
 
+/*
+ **************************************************************************
+ * USUAL DRUPAL PAGES
+ **************************************************************************
+ */
+
+function helloworld_page_id($id) {
+
+    //####################//
+    //### HEADER START ###//
+    //####################//
+    // This should be moved to a more fitting place
+
+    $p = drupal_get_path('module', 'helloworld');
+
+    drupal_add_css('http://fonts.googleapis.com/css?family=Indie+Flower', array('group' => CSS_THEME, 'type' => 'external'));
+    drupal_add_css($p . '/css/helloworld.css');
+    drupal_add_js($p . '/js/helloworld.js');
+
+    //####################//
+    //### HEADER END   ###//
+    //####################//
+
+    $result = db_select("helloworld", "h")
+        ->condition('id', $id, '=')
+        ->fields('h')
+        ->execute();
+    $out = '<div class="helloworld">';
+
+    if($result->rowCount()) {
+        $record = $result->fetchObject();
+        $out .= getEntry($record);
+    } else {
+        $out .= '<h2 class="error">Entry with ID #' . $id . ' not found!</h2>';
+    }
+
+    $out .= "</div>";
+    return $out;
+}
+
 function helloworld_page() {
 
     //####################//
     //### HEADER START ###//
     //####################//
-
     // This should be moved to a more fitting place
 
     helloworld_debug("helloworld_page");
+
+    $p = drupal_get_path('module', 'helloworld');
+
+    drupal_add_css('http://fonts.googleapis.com/css?family=Indie+Flower', array('group' => CSS_THEME, 'type' => 'external'));
+    drupal_add_css($p . '/css/helloworld.css');
+    drupal_add_js($p . '/js/helloworld.js');
+
 
     // Define some default permissions
     // @see: https://api.drupal.org/api/drupal/modules!user!user.module/function/user_role_load_by_name/7
@@ -149,15 +208,7 @@ function helloworld_page() {
     $role2 = user_role_load_by_name("administrator");
     user_role_grant_permissions($role2->rid, array('hello world delete'));
 
-    $out = '';
-    //$out .= '<p id="hello"></p>';
-    $out .= '<div class="helloworld">';
-
-    $p = drupal_get_path('module', 'helloworld');
-
-    drupal_add_css('http://fonts.googleapis.com/css?family=Indie+Flower', array('group' => CSS_THEME, 'type' => 'external'));
-    drupal_add_css($p . '/css/helloworld.css');
-    drupal_add_js($p . '/js/helloworld.js');
+    $out = '<div class="helloworld">';
 
     //####################//
     //### HEADER END   ###//
@@ -184,28 +235,34 @@ function helloworld_page() {
         ->execute();
 
     while($record = $result->fetchObject()) {
-
-        $out .= t('<div id="helloworld-context-!id">', array(
-            '!id' => $record->id
-        ));
-        $out .= t('<h2>#!id - !title</h2><p>Date: !date</p><p>!text</p>', array(
-            '!id' => $record->id,
-            '!title' => $record->title,
-            '!date' => date("Y-m-d H:i:s", $record->timestamp),
-            '!text' => $record->text,
-        ));
-
-        // @see: https://api.drupal.org/api/drupal/includes!bootstrap.inc/function/t/7 (function t)
-        // @see: https://www.drupal.org/node/1844980 (Why use t() function?)
-        // @see: https://www.drupal.org/node/322774 (Dynamic or static links and HTML in translatable strings)
-        if(user_access("hello world delete")) {
-            $out .= t('<button class="helloworld-delete" data-id="!id">DELETE</button>', array(
-                '!id' => $record->id
-            ));
-        }
-
-        $out .= '</div>';
+        $out .= getEntry($record);
     }
 
     return $out . '</div>';
+}
+
+// Helper function
+function getEntry($record){
+    $out = t('<div id="helloworld-context-!id">', array(
+        '!id' => $record->id
+    ));
+    $out .= t('<h2><a href="!url">#!id - !title</a></h2><p>Date: !date</p><p>!text</p>', array(
+        '!id' => $record->id,
+        '!title' => $record->title,
+        '!date' => date("Y-m-d H:i:s", $record->timestamp),
+        '!text' => $record->text,
+        '!url' => url("helloworld/" . $record->id)
+    ));
+
+    // @see: https://api.drupal.org/api/drupal/includes!bootstrap.inc/function/t/7 (function t)
+    // @see: https://www.drupal.org/node/1844980 (Why use t() function?)
+    // @see: https://www.drupal.org/node/322774 (Dynamic or static links and HTML in translatable strings)
+    if(user_access("hello world delete")) {
+        $out .= t('<button class="helloworld-delete" data-id="!id">DELETE</button>', array(
+            '!id' => $record->id
+        ));
+    }
+
+    $out .= '</div>';
+    return $out;
 }

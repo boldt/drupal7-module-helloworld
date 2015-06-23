@@ -66,6 +66,7 @@ function helloworld_schema() {
 /**
  * Add an additional time column to the hello world table
  */
+/*
 function helloworld_update_7001() {
     // @see: @see: https://www.drupal.org/node/150215
     $spec = array(
@@ -83,5 +84,6 @@ function helloworld_update_7001() {
         ))
         ->execute();
 }
+*/
 
 ?>
