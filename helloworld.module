@@ -11,6 +11,11 @@
 function helloworld_menu() {
 
     $items = array();
+
+    // "page arguments"
+    // If an integer is used as an argument it will represent a part of the URL, starting from 0, incremented once for each slash (/). 
+    // https://drupal.stackexchange.com/questions/62473/how-should-i-implement-hook-menu
+
     $items['helloworld'] = array(
         'title' => 'Hello World',
         'access callback' => TRUE,
@@ -18,11 +23,21 @@ function helloworld_menu() {
         'type' => MENU_NORMAL_ITEM,
         'menu' => 'navigation',
     );
-    $items['helloworld/%/delete'] = array(
-        'access callback' => TRUE,
-        'page callback' => 'helloworld_delete',
-        'page arguments' => array(1)
+
+    $items['helloworld/rest'] = array(
+      'access callback' => TRUE,
+      'page callback' => 'helloworld_rest',
+      'page arguments' => array(1),
+      'type' => MENU_CALLBACK,
     );
+
+    $items['helloworld/rest/%'] = array(
+      'access callback' => TRUE,
+      'page callback' => 'helloworld_rest_id',
+      'page arguments' => array(2),
+      'type' => MENU_CALLBACK,
+    );
+
 
     return $items;
 }
@@ -53,26 +68,55 @@ function helloworld_permission() {
     );
 }
 
-function helloworld_delete($id) {
 
-    if(user_access("hello world delete")) {
-        // @see: https://www.drupal.org/node/180589
-        $return_value = db_delete('helloworld')
-            ->condition('id', $id)
-            ->execute();
-        if($return_value) {
-            if(!empty($_SERVER['HTTP_REFERER'])) {
-                header("Location: " . $_SERVER['HTTP_REFERER']);
+// TODO: Set correct header
+function helloworld_rest_id($id) {
+
+    //drupal_add_http_header('Content-Type', 'application/json; charset=utf-8');
+
+    $parameters = drupal_get_query_parameters();
+
+    $method = $_SERVER['REQUEST_METHOD'];
+
+    if($method == "GET") {
+        echo "GET ID " . $id;
+    }
+
+    if($method == "DELETE") {
+        if(user_access("hello world delete")) {
+            // @see: https://www.drupal.org/node/180589
+            $return_value = db_delete('helloworld')
+                ->condition('id', $id)
+                ->execute();
+            if($return_value) {
+                echo t("Deleted ID $id");
             } else {
-                return t("Deleted ID $id");
+                echo t("ID $id does not exists: " . $return_value);
             }
         } else {
-            return t("ID $id does not exists: " . $return_value);
+            echo "No permissions to delete this element.";
         }
     }
-    
-    return "No permissions to delete this element.";
+
 }
+
+function helloworld_rest($link) {
+
+    global $user;
+
+    $arr = array(
+        'upper' => strtoupper($link),
+        'lower' => strtolower($link)
+    );
+
+    if(user_is_logged_in()) {
+        $arr['username'] = t($user->name);
+    }
+
+    echo json_encode($arr);
+}
+
+
 
 function helloworld_page() {
 
@@ -137,6 +181,10 @@ function helloworld_page() {
         ->execute();
 
     while($record = $result->fetchObject()) {
+
+        $out .= t('<div id="helloworld-context-!id">', array(
+            '!id' => $record->id
+        ));
         $out .= t('<h2>#!id - !title</h2><p>Date: !date</p><p>!text</p>', array(
             '!id' => $record->id,
             '!title' => $record->title,
@@ -147,11 +195,13 @@ function helloworld_page() {
         // @see: https://api.drupal.org/api/drupal/includes!bootstrap.inc/function/t/7 (function t)
         // @see: https://www.drupal.org/node/1844980 (Why use t() function?)
         // @see: https://www.drupal.org/node/322774 (Dynamic or static links and HTML in translatable strings)
-
         if(user_access("hello world delete")) {
-            $path = arg(0) . "/" . $record->id . "/delete/";
-            $out .= "[" . l("X", $path) . "]";
+            $out .= t('<button class="helloworld-delete" data-id="!id">DELETE</button>', array(
+                '!id' => $record->id
+            ));
         }
+
+        $out .= '</div>';
 
     }
 
